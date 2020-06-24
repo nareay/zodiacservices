@@ -65,13 +65,15 @@
 <script> 
  function myFunction() {
   alert("You clicked the Peacock Eye!");
-}
- const request = require('request');
-
-  request('https://www.astro.com/cgi/swetest.cgi?b=24.2.1975&n=1&s=1&p=p&e=-eswe&f=PL&arg=-ut8%3A00+-house80.17%2C13.5%2CX+-sid1+-head', function(err, res, body) {  
-      console.log(body);
-  });
- 
+  
+ var url = "https://www.astro.com/cgi/swetest.cgi?b=24.2.1975&n=1&s=1&p=p&e=-eswe&f=PL&arg=-ut8%3A00+-house80.17%2C13.5%2CX+-sid1+-head";
+  
+ var names = document.getElementsByTagName("pre");
+ for(i=0;i<names.length;i++)
+  {
+    console.log(names[i].innerText);
+  }
+  
 </script>
  
 <html>
