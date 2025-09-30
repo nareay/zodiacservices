@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍇 Fun Fruit Memory Game 🍊</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(135deg, #fefcea, #f1da36);
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    color: #ff6600;
+    margin-bottom: 10px;
+  }
+  .controls {
+    margin-bottom: 15px;
+  }
+  #info {
+    margin: 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 5px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .cell {
+    width: 60px;
+    height: 60px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.2s;
+  }
+  .cell:hover {
+    transform: scale(1.1);
+    background: #ffe0b3;
+  }
+  .hidden {
+    background: #ddd;
+  }
+  #message {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: green;
+  }
+  button {
+    margin: 5px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    background: #ff9933;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #ff6600;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    #board {
+      grid-template-columns: repeat(8, 40px);
+      grid-template-rows: repeat(8, 40px);
+      gap: 4px;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+    #info {
+      font-size: 16px;
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>🍇 Fun Fruit Memory Game 🍊</h1>
+
+<div class="controls">
+  <label for="level">Choose Level: </label>
+  <select id="level">
+    <option value="1">Simple (1 fruit)</option>
+    <option value="2">Medium (2 fruits)</option>
+    <option value="3">Advanced (3 fruits)</option>
+  </select>
+  <button id="startBtn">Start Game</button>
+  <button id="resetBtn">Reset</button>
+  <button id="playAgainBtn" style="display:none;">Play Again</button>
+</div>
+
+<div id="info">
+  <span id="pickText">Pick all: 🍎</span>
+  <span id="scoreText">Score: 0</span>
+  <span id="timerText">Time Left: 60</span>
+</div>
+
+<div id="message"></div>
+
+<div id="board"></div>
+<br/>
+<div><a href="index.html" style="color:var(--accent1);text-decoration:none">← Back / Home</a></div>
+<br/>
+<button onclick="printPage()">🖨️ Print / Save as PDF</button>
+
+
+<!-- Sounds -->
+<!--<audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>-->
+<!--<audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/4386" preload="auto"></audio>-->
+
+ <!-- Funny click sound -->
+  <audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+  <!-- Win sound -->
+  <audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+  <!--Alternate sound wrong pick-->
+  <audio id="wrongSound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+
+
+<script>
+const fruits = ["🍎","🍌","🍓","🍇","🍑","🍍","🥝","🍒"];
+let targetFruits = [];
+let score = 0, timeLeft = 60, timer, gameActive = false;
+
+const board = document.getElementById("board");
+const pickText = document.getElementById("pickText");
+const scoreText = document.getElementById("scoreText");
+const timerText = document.getElementById("timerText");
+const message = document.getElementById("message");
+const startBtn = document.getElementById("startBtn");
+const resetBtn = document.getElementById("resetBtn");
+const playAgainBtn = document.getElementById("playAgainBtn");
+const levelSelect = document.getElementById("level");
+const clickSound = document.getElementById("clickSound");
+const winSound = document.getElementById("winSound");
+
+function createBoard() {
+  board.innerHTML = "";
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.textContent = fruits[Math.floor(Math.random()*fruits.length)];
+    cell.addEventListener("click", () => pickFruit(cell));
+    board.appendChild(cell);
+  }
+}
+
+function startGame() {
+// Below line to clear the timer values.  
+clearInterval(timer);
+
+  gameActive = true;
+  score = 0;
+  timeLeft = 60;
+  message.textContent = "";
+  scoreText.textContent = "Score: 0";
+  playAgainBtn.style.display = "none";
+
+  // Choose fruits based on level
+  const level = parseInt(levelSelect.value);
+  targetFruits = [];
+  while (targetFruits.length < level) {
+    let fruit = fruits[Math.floor(Math.random()*fruits.length)];
+    if (!targetFruits.includes(fruit)) targetFruits.push(fruit);
+  }
+  pickText.textContent = "Pick all: " + targetFruits.join(" & ");
+
+  // Lock/Unlock board
+  document.querySelectorAll(".cell").forEach(cell => {
+    cell.style.pointerEvents = "auto";
+  });
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timerText.textContent = "Time Left: " + timeLeft;
+    if (timeLeft <= 0) endGame(false);
+  }, 1000);
+}
+
+function pickFruit(cell) {
+  if (!gameActive) return;
+  const fruit = cell.textContent;
+    clickSound.currentTime = 0;
+    clickSound.play();
+
+  if (targetFruits.includes(fruit)) {
+    score += 100;
+    scoreText.textContent = "Score: " + score;
+    wrongSound.currentTime = 0;
+    wrongSound.play();
+    cell.style.visibility = "hidden";
+
+    // Check if all target fruits are cleared
+    let remaining = [...document.querySelectorAll(".cell")]
+      .filter(c => targetFruits.includes(c.textContent) && c.style.visibility !== "hidden");
+
+    if (remaining.length === 0) {
+      endGame(true);
+    }
+  }
+}
+
+function endGame(won) {
+  clearInterval(timer);
+  gameActive = false;
+  document.querySelectorAll(".cell").forEach(cell => {
+    cell.style.pointerEvents = "none";
+  });
+
+  if (won) {
+    message.textContent = "🎉 You won! Final Score: " + score;
+    winSound.play();
+    playAgainBtn.style.display = "inline-block";
+  } else {
+    message.textContent = "⏰ Time’s up! Try again!";
+  }
+}
+
+resetBtn.addEventListener("click", () => {
+  clearInterval(timer);
+  createBoard();
+  score = 0;
+  scoreText.textContent = "Score: 0";
+  timerText.textContent = "Time Left: 60";
+  pickText.textContent = "Pick all: 🍎";
+  message.textContent = "";
+  gameActive = false;
+  playAgainBtn.style.display = "none";
+});
+
+playAgainBtn.addEventListener("click", () => {
+  createBoard();
+  startGame();
+});
+
+startBtn.addEventListener("click", startGame);
+
+// Initial board setup
+createBoard();
+document.querySelectorAll(".cell").forEach(cell => {
+  cell.style.pointerEvents = "none"; // lock before start
+});
+
+function printPage() {
+  window.print(); // opens print dialog (user can select "Save as PDF")
+}
+
+</script>
+</body>
+</html>
