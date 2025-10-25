@@ -129,7 +129,6 @@
 </div>
 
 <script>
-// Add education/project functions
 function addEducation(){ 
   const eduBlock = document.createElement('div'); 
   eduBlock.className='edu-block';
@@ -148,49 +147,65 @@ function addProject(){
   document.getElementById('project-section').appendChild(projBlock); 
 }
 
-// Prepare resume
 function prepareResume(){
-  const fullName=document.getElementById('fullName').value, email=document.getElementById('email').value, phone=document.getElementById('phone').value, address=document.getElementById('address').value, objective=document.getElementById('objective').value, company=document.getElementById('company').value, role=document.getElementById('role').value, duration=document.getElementById('duration').value, responsibilities=document.getElementById('responsibilities').value, skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean), signature=document.getElementById('signature').value;
+  const fullName=document.getElementById('fullName').value;
+  const email=document.getElementById('email').value;
+  const phone=document.getElementById('phone').value;
+  const address=document.getElementById('address').value;
+  const objective=document.getElementById('objective').value;
+  const company=document.getElementById('company').value;
+  const role=document.getElementById('role').value;
+  const duration=document.getElementById('duration').value;
+  const responsibilities=document.getElementById('responsibilities').value;
+  const skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const signature=document.getElementById('signature').value;
 
-  const eduBlocks=[...document.querySelectorAll('.edu-block')]; 
-  let eduHTML=''; 
+  const eduBlocks=[...document.querySelectorAll('.edu-block')];
+  let eduHTML='';
   eduBlocks.forEach(e=>{
     eduHTML+=`<p><strong>${e.querySelector('.degree').value}</strong><br>${e.querySelector('.institution').value} (${e.querySelector('.year').value})<br><em>${e.querySelector('.grade').value}</em></p>`;
   });
 
-  const projBlocks=[...document.querySelectorAll('.proj-block')]; 
-  let projHTML=''; 
+  const projBlocks=[...document.querySelectorAll('.proj-block')];
+  let projHTML='';
   projBlocks.forEach(p=>{
     projHTML+=`<p><strong>${p.querySelector('.projectTitle').value}</strong><br>${p.querySelector('.projectDesc').value}</p>`;
   });
 
   const skillsHTML=skills.map(s=>`<span>${s}</span>`).join(' ');
-
   const html=`<div class="resume-header"><h1>${fullName||'Your Name'}</h1><p>${email||''} | ${phone||''}</p><p>${address||''}</p></div>
   <div class="resume-body"><div class="resume-left"><h4>Objective</h4><p>${objective||''}</p><h4>Skills</h4><div class="skills">${skillsHTML}</div><h4>Education</h4>${eduHTML}</div>
   <div class="resume-right"><h4>Work Experience</h4><p><strong>${company||''}</strong> - ${role||''}<br>${duration||''}</p><p>${responsibilities||''}</p><h4>Projects / Achievements</h4>${projHTML}<div class="signature"><p>Signature: ${signature||''}</p></div></div></div>`;
-
-  const output=document.getElementById('resume-output'); 
-  output.innerHTML=html; 
+  const output=document.getElementById('resume-output');
+  output.innerHTML=html;
   output.style.display='block';
 }
 
-// Reset form
 function resetForm(){
   document.querySelectorAll('input,textarea').forEach(i=>i.value='');
   document.getElementById('resume-output').style.display='none';
-  document.getElementById('education-section').innerHTML=`<div class="edu-block"><div class="row"><label>Degree:</label><input type="text" class="degree"></div><div class="row"><label>Institution:</label><input type="text" class="institution"></div><div class="row"><label>Year:</label><input type="text" class="year"></div><div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div><hr></div>`;
-  document.getElementById('project-section').innerHTML=`<div class="proj-block"><div class="row"><label>Title:</label><input type="text" class="projectTitle"></div><div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div><hr></div>`;
+  document.getElementById('education-section').innerHTML='<div class="edu-block"><div class="row"><label>Degree:</label><input type="text" class="degree"></div><div class="row"><label>Institution:</label><input type="text" class="institution"></div><div class="row"><label>Year:</label><input type="text" class="year"></div><div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div><hr></div>';
+  document.getElementById('project-section').innerHTML='<div class="proj-block"><div class="row"><label>Title:</label><input type="text" class="projectTitle"></div><div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div><hr></div>';
   document.getElementById('qrcode').innerHTML='';
   document.getElementById('qr-json-area').value='';
   document.getElementById('qr-json-area').style.display='none';
   document.getElementById('qr-reader').style.display='none';
 }
 
-// Generate QR
 function generateQR(){
   prepareResume();
-  const fullName=document.getElementById('fullName').value, email=document.getElementById('email').value, phone=document.getElementById('phone').value, address=document.getElementById('address').value, objective=document.getElementById('objective').value, company=document.getElementById('company').value, role=document.getElementById('role').value, duration=document.getElementById('duration').value, responsibilities=document.getElementById('responsibilities').value, skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean), signature=document.getElementById('signature').value;
+  const fullName=document.getElementById('fullName').value;
+  const email=document.getElementById('email').value;
+  const phone=document.getElementById('phone').value;
+  const address=document.getElementById('address').value;
+  const objective=document.getElementById('objective').value;
+  const company=document.getElementById('company').value;
+  const role=document.getElementById('role').value;
+  const duration=document.getElementById('duration').value;
+  const responsibilities=document.getElementById('responsibilities').value;
+  const skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const signature=document.getElementById('signature').value;
+
   const eduBlocks=[...document.querySelectorAll('.edu-block')];
   const projBlocks=[...document.querySelectorAll('.proj-block')];
 
@@ -199,96 +214,103 @@ function generateQR(){
     projects:projBlocks.map(p=>({ title:p.querySelector('.projectTitle').value, desc:p.querySelector('.projectDesc').value }))
   };
 
-  const qrContainer=document.getElementById('qrcode'); qrContainer.innerHTML='';
+  const qrContainer=document.getElementById('qrcode');
+  qrContainer.innerHTML='';
   new QRCode(qrContainer,{ text:JSON.stringify(resumeData), width:150, height:150, correctLevel:QRCode.CorrectLevel.H });
 }
 
-// Import JSON
+function importJSONData(data){
+  document.getElementById('fullName').value=data.fullName||'';
+  document.getElementById('email').value=data.email||'';
+  document.getElementById('phone').value=data.phone||'';
+  document.getElementById('address').value=data.address||'';
+  document.getElementById('objective').value=data.objective||'';
+  document.getElementById('company').value=data.company||'';
+  document.getElementById('role').value=data.role||'';
+  document.getElementById('duration').value=data.duration||'';
+  document.getElementById('responsibilities').value=data.responsibilities||'';
+  document.getElementById('skills').value=(data.skills||[]).join(', ');
+  document.getElementById('signature').value=data.signature||'';
+
+  const eduSec=document.getElementById('education-section');
+  eduSec.innerHTML='';
+  (data.education||[]).forEach(e=>{
+    addEducation();
+    const last=eduSec.lastElementChild;
+    last.querySelector('.degree').value=e.degree||'';
+    last.querySelector('.institution').value=e.institution||'';
+    last.querySelector('.year').value=e.year||'';
+    last.querySelector('.grade').value=e.grade||'';
+  });
+
+  const projSec=document.getElementById('project-section');
+  projSec.innerHTML='';
+  (data.projects||[]).forEach(p=>{
+    addProject();
+    const last=projSec.lastElementChild;
+    last.querySelector('.projectTitle').value=p.title||'';
+    last.querySelector('.projectDesc').value=p.desc||'';
+  });
+  prepareResume();
+}
+
 function importJSON(){
-  const area=document.getElementById('qr-json-area'); area.style.display='block';
+  const area=document.getElementById('qr-json-area');
+  area.style.display='block';
   try{
     const data=JSON.parse(area.value);
-    if(!data) return;
-    document.getElementById('fullName').value=data.fullName||'';
-    document.getElementById('email').value=data.email||'';
-    document.getElementById('phone').value=data.phone||'';
-    document.getElementById('address').value=data.address||'';
-    document.getElementById('objective').value=data.objective||'';
-    document.getElementById('company').value=data.company||'';
-    document.getElementById('role').value=data.role||'';
-    document.getElementById('duration').value=data.duration||'';
-    document.getElementById('responsibilities').value=data.responsibilities||'';
-    document.getElementById('skills').value=(data.skills||[]).join(', ');
-    document.getElementById('signature').value=data.signature||'';
-
-    const eduSec=document.getElementById('education-section'); eduSec.innerHTML='';
-    (data.education||[]).forEach(e=>{ addEducation(); const last=eduSec.lastElementChild; last.querySelector('.degree').value=e.degree||''; last.querySelector('.institution').value=e.institution||''; last.querySelector('.year').value=e.year||''; last.querySelector('.grade').value=e.grade||''; });
-
-    const projSec=document.getElementById('project-section'); projSec.innerHTML='';
-    (data.projects||[]).forEach(p=>{ addProject(); const last=projSec.lastElementChild; last.querySelector('.projectTitle').value=p.title||''; last.querySelector('.projectDesc').value=p.desc||''; });
-
-    prepareResume();
+    importJSONData(data);
     alert("✅ Form filled successfully!");
   }catch(err){ alert("⚠️ Invalid JSON!"); }
 }
 
-// Improved QR Scanner
-function startQRScanner() {
-    const qrReader = document.getElementById("qr-reader");
-    qrReader.style.display = "block";
-    qrReader.innerHTML = "";
-
-    const html5QrCode = new Html5Qrcode("qr-reader");
-
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-            console.log("Scanned QR Data:", qrCodeMessage);
-
-            try {
-                const data = JSON.parse(qrCodeMessage);
-                if (typeof data === "object") {
-                    document.getElementById("qr-json-area").value = JSON.stringify(data, null, 2);
-                    importJSON();
-                    setTimeout(() => {
-                        html5QrCode.stop().catch(err => console.log(err));
-                        qrReader.style.display = "none";
-                    }, 500);
-                } else {
-                    alert("⚠️ QR does not contain valid JSON object!");
-                }
-            } catch (err) {
-                console.log("Invalid QR JSON:", err);
-                alert("⚠️ QR code content is not valid JSON!");
-            }
-        },
-        errorMessage => {}
-    ).catch(err => {
-        console.log("Camera initialization error:", err);
-        alert("⚠️ Unable to access camera. Make sure you allow camera permission.");
-    });
+// ✅ FIXED QR SCANNER
+function startQRScanner(){
+  const qrReader=document.getElementById("qr-reader");
+  qrReader.style.display="block";
+  qrReader.innerHTML="";
+  const html5QrCode=new Html5Qrcode("qr-reader");
+  html5QrCode.start({ facingMode:"environment" },{ fps:10, qrbox:250 },
+    qrCodeMessage=>{
+      console.log("Scanned:", qrCodeMessage);
+      try{
+        const data=JSON.parse(qrCodeMessage);
+        if(typeof data==="object"){
+          importJSONData(data);
+          document.getElementById("qr-json-area").value=JSON.stringify(data,null,2);
+          setTimeout(()=>{ html5QrCode.stop().catch(()=>{}); qrReader.style.display="none"; },1000);
+          alert("✅ Data imported from QR!");
+        } else alert("⚠️ QR does not contain valid JSON.");
+      }catch(err){
+        console.error(err);
+        alert("⚠️ Invalid QR JSON!");
+      }
+    },
+    ()=>{}
+  ).catch(err=>{
+    console.error(err);
+    alert("⚠️ Camera permission denied or not available.");
+  });
 }
 
-// Download QR
-function downloadQR() {
-    const qrContainer = document.getElementById("qrcode");
-    const canvas = qrContainer.querySelector("canvas");
-    if (!canvas) { alert("Generate QR first!"); return; }
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "resume-qr.png";
-    link.click();
+function downloadQR(){
+  const qrContainer=document.getElementById("qrcode");
+  const canvas=qrContainer.querySelector("canvas");
+  if(!canvas){ alert("Generate QR first!"); return; }
+  const link=document.createElement("a");
+  link.href=canvas.toDataURL("image/png");
+  link.download="resume-qr.png";
+  link.click();
 }
 
-// Event listeners
 document.getElementById("prepareBtn").addEventListener("click", prepareResume);
-document.getElementById("printBtn").addEventListener("click", () => window.print());
+document.getElementById("printBtn").addEventListener("click", ()=>window.print());
 document.getElementById("resetBtn").addEventListener("click", resetForm);
 document.getElementById("generateQRBtn").addEventListener("click", generateQR);
 document.getElementById("importJSONBtn").addEventListener("click", importJSON);
 document.getElementById("scanQRBtn").addEventListener("click", startQRScanner);
 document.getElementById("downloadQRBtn").addEventListener("click", downloadQR);
 </script>
+
 </body>
 </html>
