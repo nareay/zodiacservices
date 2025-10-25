@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Resume Builder – Mobile QR Ready</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f6fa; margin: 0; padding: 20px; }
+  .container { max-width: 950px; margin: auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  h2 { text-align: center; margin-bottom: 20px; color: #1a73e8; }
+  .section { margin-bottom: 20px; }
+  .row { display: flex; flex-wrap: wrap; margin-bottom: 10px; }
+  .row label { width: 150px; font-weight: bold; padding-top: 5px; }
+  .row input, .row textarea { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+  textarea { resize: vertical; min-height: 60px; }
+  .controls { text-align: center; margin-top: 25px; }
+  button { padding: 10px 15px; border: none; border-radius: 5px; background: #1a73e8; color: white; cursor: pointer; margin: 5px; }
+  button.small { background: #28a745; }
+  button.danger { background: #dc3545; }
+  button.add { background: #17a2b8; padding: 5px 10px; font-size: 13px; }
+  .resume-wrapper { width: 210mm; min-height: 297mm; background: white; color: #333; margin: auto; border: 1px solid #ccc; border-radius: 4px; }
+  .resume-header { background: #1a73e8; color: white; padding: 25px; text-align: center; }
+  .resume-header h1 { margin: 0; font-size: 28px; }
+  .resume-header p { margin: 5px 0 0 0; }
+  .resume-body { display: grid; grid-template-columns: 30% 70%; }
+  .resume-left { background: #f5f7fa; padding: 20px; border-right: 1px solid #ddd; }
+  .resume-right { padding: 20px; }
+  h4 { color: #1a73e8; margin-top: 10px; margin-bottom: 5px; border-bottom: 1px solid #1a73e8; padding-bottom: 4px; }
+  .skills span { display: inline-block; background: #e0e7ff; color: #1a73e8; padding: 4px 8px; border-radius: 4px; margin: 3px 3px 0 0; font-size: 13px; }
+  p { margin: 5px 0; line-height: 1.4; }
+  .signature { text-align: right; margin-top: 30px; font-style: italic; }
+  #qrcode { margin-top: 20px; text-align: center; }
+  #qr-json-area { display:none; width:100%; height:100px; margin-top:10px; font-family: monospace; }
+  #qr-reader { width: 100%; max-width: 400px; margin: 10px auto; display:none; }
+  @media (max-width: 768px) { .row { flex-direction: column; } .row label { width: 90%; } .resume-body { grid-template-columns: 1fr; } button { width: 90%; margin-top: 5px; } }
+  @media print {
+    body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: white !important; }
+    body * { visibility: hidden; }
+    #resume-output, #resume-output * { visibility: visible; }
+    #resume-output { position: absolute; left: 0; top: 0; width: 210mm !important; min-height: 297mm !important; margin: 0 auto !important; box-shadow: none !important; background: white !important; }
+    .resume-body { display: grid !important; grid-template-columns: 30% 70% !important; gap: 0 !important; }
+    .resume-left { background: #f5f7fa !important; border-right: 1px solid #ddd !important; padding: 15px !important; }
+    .resume-right { padding: 15px !important; }
+    @page { size: A4 portrait; margin: 10mm; }
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+<div class="container">
+  <h2>Simple Resume Builder – QR Mobile Ready</h2>
+
+  <!-- Personal Info -->
+  <div class="section">
+    <h3>Personal Info</h3>
+    <div class="row"><label>Full Name:</label><input type="text" id="fullName"></div>
+    <div class="row"><label>Email:</label><input type="email" id="email"></div>
+    <div class="row"><label>Phone:</label><input type="text" id="phone"></div>
+    <div class="row"><label>Address:</label><input type="text" id="address"></div>
+    <div class="row"><label>Career Objective:</label><textarea id="objective"></textarea></div>
+  </div>
+
+  <!-- Education -->
+  <div class="section">
+    <h3>Education</h3>
+    <div id="education-section">
+      <div class="edu-block">
+        <div class="row"><label>Degree:</label><input type="text" class="degree"></div>
+        <div class="row"><label>Institution:</label><input type="text" class="institution"></div>
+        <div class="row"><label>Year:</label><input type="text" class="year"></div>
+        <div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div>
+        <hr>
+      </div>
+    </div>
+    <button type="button" class="add" onclick="addEducation()">Add +</button>
+  </div>
+
+  <!-- Work Experience -->
+  <div class="section">
+    <h3>Work Experience</h3>
+    <div class="row"><label>Company:</label><input type="text" id="company"></div>
+    <div class="row"><label>Role:</label><input type="text" id="role"></div>
+    <div class="row"><label>Duration:</label><input type="text" id="duration"></div>
+    <div class="row"><label>Responsibilities:</label><textarea id="responsibilities"></textarea></div>
+  </div>
+
+  <!-- Skills -->
+  <div class="section">
+    <h3>Skills</h3>
+    <div class="row"><label>List (comma separated):</label><input type="text" id="skills"></div>
+  </div>
+
+  <!-- Projects -->
+  <div class="section">
+    <h3>Projects / Achievements</h3>
+    <div id="project-section">
+      <div class="proj-block">
+        <div class="row"><label>Title:</label><input type="text" class="projectTitle"></div>
+        <div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div>
+        <hr>
+      </div>
+    </div>
+    <button type="button" class="add" onclick="addProject()">Add +</button>
+  </div>
+
+  <!-- Signature -->
+  <div class="section">
+    <div class="row"><label>Signature:</label><input type="text" id="signature"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="prepareBtn">Prepare Resume</button>
+    <button id="printBtn" class="small">Print</button>
+    <button id="resetBtn" class="danger">Reset</button>
+    <button id="generateQRBtn" class="small">Generate QR</button>
+    <button id="scanQRBtn" class="small">Scan QR</button>
+    <button id="importJSONBtn" class="small">Show / Import JSON</button>
+    <textarea id="qr-json-area" placeholder="Paste JSON from QR here..."></textarea>
+    <div id="qr-reader"></div>
+    <div id="qrcode"></div>
+    <button id="downloadQRBtn" class="small">Download QR</button>
+    <p style="font-size:13px;color:#555">💡 Tip: QR is mobile-compatible. JSON import is 100% reliable.</p>
+  </div>
+
+  <!-- Resume Output -->
+  <div id="resume-output" class="resume-wrapper" style="display:none;"></div>
+</div>
+
+<script>
+// Add education/project functions
+function addEducation(){ 
+  const eduBlock = document.createElement('div'); 
+  eduBlock.className='edu-block';
+  eduBlock.innerHTML=`<div class="row"><label>Degree:</label><input type="text" class="degree"></div>
+  <div class="row"><label>Institution:</label><input type="text" class="institution"></div>
+  <div class="row"><label>Year:</label><input type="text" class="year"></div>
+  <div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div><hr>`;
+  document.getElementById('education-section').appendChild(eduBlock); 
+}
+
+function addProject(){ 
+  const projBlock=document.createElement('div'); 
+  projBlock.className='proj-block';
+  projBlock.innerHTML=`<div class="row"><label>Title:</label><input type="text" class="projectTitle"></div>
+  <div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div><hr>`;
+  document.getElementById('project-section').appendChild(projBlock); 
+}
+
+// Prepare resume
+function prepareResume(){
+  const fullName=document.getElementById('fullName').value, email=document.getElementById('email').value, phone=document.getElementById('phone').value, address=document.getElementById('address').value, objective=document.getElementById('objective').value, company=document.getElementById('company').value, role=document.getElementById('role').value, duration=document.getElementById('duration').value, responsibilities=document.getElementById('responsibilities').value, skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean), signature=document.getElementById('signature').value;
+
+  const eduBlocks=[...document.querySelectorAll('.edu-block')]; 
+  let eduHTML=''; 
+  eduBlocks.forEach(e=>{
+    eduHTML+=`<p><strong>${e.querySelector('.degree').value}</strong><br>${e.querySelector('.institution').value} (${e.querySelector('.year').value})<br><em>${e.querySelector('.grade').value}</em></p>`;
+  });
+
+  const projBlocks=[...document.querySelectorAll('.proj-block')]; 
+  let projHTML=''; 
+  projBlocks.forEach(p=>{
+    projHTML+=`<p><strong>${p.querySelector('.projectTitle').value}</strong><br>${p.querySelector('.projectDesc').value}</p>`;
+  });
+
+  const skillsHTML=skills.map(s=>`<span>${s}</span>`).join(' ');
+
+  const html=`<div class="resume-header"><h1>${fullName||'Your Name'}</h1><p>${email||''} | ${phone||''}</p><p>${address||''}</p></div>
+  <div class="resume-body"><div class="resume-left"><h4>Objective</h4><p>${objective||''}</p><h4>Skills</h4><div class="skills">${skillsHTML}</div><h4>Education</h4>${eduHTML}</div>
+  <div class="resume-right"><h4>Work Experience</h4><p><strong>${company||''}</strong> - ${role||''}<br>${duration||''}</p><p>${responsibilities||''}</p><h4>Projects / Achievements</h4>${projHTML}<div class="signature"><p>Signature: ${signature||''}</p></div></div></div>`;
+
+  const output=document.getElementById('resume-output'); 
+  output.innerHTML=html; 
+  output.style.display='block';
+}
+
+// Reset form
+function resetForm(){
+  document.querySelectorAll('input,textarea').forEach(i=>i.value='');
+  document.getElementById('resume-output').style.display='none';
+  document.getElementById('education-section').innerHTML=`<div class="edu-block"><div class="row"><label>Degree:</label><input type="text" class="degree"></div><div class="row"><label>Institution:</label><input type="text" class="institution"></div><div class="row"><label>Year:</label><input type="text" class="year"></div><div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div><hr></div>`;
+  document.getElementById('project-section').innerHTML=`<div class="proj-block"><div class="row"><label>Title:</label><input type="text" class="projectTitle"></div><div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div><hr></div>`;
+  document.getElementById('qrcode').innerHTML='';
+  document.getElementById('qr-json-area').value='';
+  document.getElementById('qr-json-area').style.display='none';
+  document.getElementById('qr-reader').style.display='none';
+}
+
+// Generate QR
+function generateQR(){
+  prepareResume();
+  const fullName=document.getElementById('fullName').value, email=document.getElementById('email').value, phone=document.getElementById('phone').value, address=document.getElementById('address').value, objective=document.getElementById('objective').value, company=document.getElementById('company').value, role=document.getElementById('role').value, duration=document.getElementById('duration').value, responsibilities=document.getElementById('responsibilities').value, skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean), signature=document.getElementById('signature').value;
+  const eduBlocks=[...document.querySelectorAll('.edu-block')];
+  const projBlocks=[...document.querySelectorAll('.proj-block')];
+
+  const resumeData={ fullName,email,phone,address,objective,company,role,duration,responsibilities,skills,signature,
+    education:eduBlocks.map(e=>({ degree:e.querySelector('.degree').value, institution:e.querySelector('.institution').value, year:e.querySelector('.year').value, grade:e.querySelector('.grade').value })),
+    projects:projBlocks.map(p=>({ title:p.querySelector('.projectTitle').value, desc:p.querySelector('.projectDesc').value }))
+  };
+
+  const qrContainer=document.getElementById('qrcode'); qrContainer.innerHTML='';
+  new QRCode(qrContainer,{ text:JSON.stringify(resumeData), width:150, height:150, correctLevel:QRCode.CorrectLevel.H });
+}
+
+// Import JSON
+function importJSON(){
+  const area=document.getElementById('qr-json-area'); area.style.display='block';
+  try{
+    const data=JSON.parse(area.value);
+    if(!data) return;
+    document.getElementById('fullName').value=data.fullName||'';
+    document.getElementById('email').value=data.email||'';
+    document.getElementById('phone').value=data.phone||'';
+    document.getElementById('address').value=data.address||'';
+    document.getElementById('objective').value=data.objective||'';
+    document.getElementById('company').value=data.company||'';
+    document.getElementById('role').value=data.role||'';
+    document.getElementById('duration').value=data.duration||'';
+    document.getElementById('responsibilities').value=data.responsibilities||'';
+    document.getElementById('skills').value=(data.skills||[]).join(', ');
+    document.getElementById('signature').value=data.signature||'';
+
+    const eduSec=document.getElementById('education-section'); eduSec.innerHTML='';
+    (data.education||[]).forEach(e=>{ addEducation(); const last=eduSec.lastElementChild; last.querySelector('.degree').value=e.degree||''; last.querySelector('.institution').value=e.institution||''; last.querySelector('.year').value=e.year||''; last.querySelector('.grade').value=e.grade||''; });
+
+    const projSec=document.getElementById('project-section'); projSec.innerHTML='';
+    (data.projects||[]).forEach(p=>{ addProject(); const last=projSec.lastElementChild; last.querySelector('.projectTitle').value=p.title||''; last.querySelector('.projectDesc').value=p.desc||''; });
+
+    prepareResume();
+    alert("✅ Form filled successfully!");
+  }catch(err){ alert("⚠️ Invalid JSON!"); }
+}
+
+// Improved QR Scanner
+function startQRScanner() {
+    const qrReader = document.getElementById("qr-reader");
+    qrReader.style.display = "block";
+    qrReader.innerHTML = "";
+
+    const html5QrCode = new Html5Qrcode("qr-reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+            console.log("Scanned QR Data:", qrCodeMessage);
+
+            try {
+                const data = JSON.parse(qrCodeMessage);
+                if (typeof data === "object") {
+                    document.getElementById("qr-json-area").value = JSON.stringify(data, null, 2);
+                    importJSON();
+                    setTimeout(() => {
+                        html5QrCode.stop().catch(err => console.log(err));
+                        qrReader.style.display = "none";
+                    }, 500);
+                } else {
+                    alert("⚠️ QR does not contain valid JSON object!");
+                }
+            } catch (err) {
+                console.log("Invalid QR JSON:", err);
+                alert("⚠️ QR code content is not valid JSON!");
+            }
+        },
+        errorMessage => {}
+    ).catch(err => {
+        console.log("Camera initialization error:", err);
+        alert("⚠️ Unable to access camera. Make sure you allow camera permission.");
+    });
+}
+
+// Download QR
+function downloadQR() {
+    const qrContainer = document.getElementById("qrcode");
+    const canvas = qrContainer.querySelector("canvas");
+    if (!canvas) { alert("Generate QR first!"); return; }
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "resume-qr.png";
+    link.click();
+}
+
+// Event listeners
+document.getElementById("prepareBtn").addEventListener("click", prepareResume);
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+document.getElementById("resetBtn").addEventListener("click", resetForm);
+document.getElementById("generateQRBtn").addEventListener("click", generateQR);
+document.getElementById("importJSONBtn").addEventListener("click", importJSON);
+document.getElementById("scanQRBtn").addEventListener("click", startQRScanner);
+document.getElementById("downloadQRBtn").addEventListener("click", downloadQR);
+</script>
+</body>
+</html>
