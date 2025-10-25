@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Resume Builder (Add+ Enabled)</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f6fa; margin: 0; padding: 20px; }
+  .container { max-width: 950px; margin: auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  h2 { text-align: center; margin-bottom: 20px; color: #1a73e8; }
+  .section { margin-bottom: 20px; }
+  .row { display: flex; flex-wrap: wrap; margin-bottom: 10px; }
+  .row label { width: 150px; font-weight: bold; padding-top: 5px; }
+  .row input, .row textarea { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+  textarea { resize: vertical; min-height: 60px; }
+  .controls { text-align: center; margin-top: 25px; }
+  button { padding: 10px 15px; border: none; border-radius: 5px; background: #1a73e8; color: white; cursor: pointer; margin: 5px; }
+  button.small { background: #28a745; }
+  button.danger { background: #dc3545; }
+  button.add { background: #17a2b8; padding: 5px 10px; font-size: 13px; }
+  .resume-wrapper { width: 210mm; min-height: 297mm; background: white; color: #333; margin: auto; border: 1px solid #ccc; border-radius: 4px; }
+  .resume-header { background: #1a73e8; color: white; padding: 25px; text-align: center; }
+  .resume-header h1 { margin: 0; font-size: 28px; }
+  .resume-header p { margin: 5px 0 0 0; }
+  .resume-body { display: grid; grid-template-columns: 30% 70%; }
+  .resume-left { background: #f5f7fa; padding: 20px; border-right: 1px solid #ddd; }
+  .resume-right { padding: 20px; }
+  h4 { color: #1a73e8; margin-top: 10px; margin-bottom: 5px; border-bottom: 1px solid #1a73e8; padding-bottom: 4px; }
+  .skills span { display: inline-block; background: #e0e7ff; color: #1a73e8; padding: 4px 8px; border-radius: 4px; margin: 3px 3px 0 0; font-size: 13px; }
+  p { margin: 5px 0; line-height: 1.4; }
+  .signature { text-align: right; margin-top: 30px; font-style: italic; }
+  #qrcode { margin-top: 20px; text-align: center; }
+  #qr-json-area { display:none; width:100%; height:100px; margin-top:10px; font-family: monospace; }
+  #qr-reader { width: 100%; margin-top:10px; visibility:hidden; }
+  @media (max-width: 768px) { .row { flex-direction: column; } .row label { width: 90%; } .resume-body { grid-template-columns: 1fr; } button { width: 90%; margin-top: 5px; } }
+  @media print {
+    body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: white !important; }
+    body * { visibility: hidden; }
+    #resume-output, #resume-output * { visibility: visible; }
+    #resume-output { position: absolute; left: 0; top: 0; width: 210mm !important; min-height: 297mm !important; margin: 0 auto !important; box-shadow: none !important; background: white !important; }
+    .resume-body { display: grid !important; grid-template-columns: 30% 70% !important; gap: 0 !important; }
+    .resume-left { background: #f5f7fa !important; border-right: 1px solid #ddd !important; padding: 15px !important; }
+    .resume-right { padding: 15px !important; }
+    @page { size: A4 portrait; margin: 10mm; }
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+<div class="container">
+<h2>Simple Resume Builder – Version 3.2 (Add+ Enabled)</h2>
+
+<!-- Personal Info -->
+<div class="section">
+  <h3>Personal Info</h3>
+  <div class="row"><label>Full Name:</label><input type="text" id="fullName"></div>
+  <div class="row"><label>Email:</label><input type="email" id="email"></div>
+  <div class="row"><label>Phone:</label><input type="text" id="phone"></div>
+  <div class="row"><label>Address:</label><input type="text" id="address"></div>
+  <div class="row"><label>Career Objective:</label><textarea id="objective"></textarea></div>
+</div>
+
+<!-- Education -->
+<div class="section">
+  <h3>Education</h3>
+  <div id="education-section">
+    <div class="edu-block">
+      <div class="row"><label>Degree:</label><input type="text" class="degree"></div>
+      <div class="row"><label>Institution:</label><input type="text" class="institution"></div>
+      <div class="row"><label>Year:</label><input type="text" class="year"></div>
+      <div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div>
+      <hr>
+    </div>
+  </div>
+  <button type="button" class="add" onclick="addEducation()">Add +</button>
+</div>
+
+<!-- Work Experience -->
+<div class="section">
+  <h3>Work Experience</h3>
+  <div class="row"><label>Company:</label><input type="text" id="company"></div>
+  <div class="row"><label>Role:</label><input type="text" id="role"></div>
+  <div class="row"><label>Duration:</label><input type="text" id="duration"></div>
+  <div class="row"><label>Responsibilities:</label><textarea id="responsibilities"></textarea></div>
+</div>
+
+<!-- Skills -->
+<div class="section">
+  <h3>Skills</h3>
+  <div class="row"><label>List (comma separated):</label><input type="text" id="skills"></div>
+</div>
+
+<!-- Projects -->
+<div class="section">
+  <h3>Projects / Achievements</h3>
+  <div id="project-section">
+    <div class="proj-block">
+      <div class="row"><label>Title:</label><input type="text" class="projectTitle"></div>
+      <div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div>
+      <hr>
+    </div>
+  </div>
+  <button type="button" class="add" onclick="addProject()">Add +</button>
+</div>
+
+<!-- Signature -->
+<div class="section">
+  <div class="row"><label>Signature:</label><input type="text" id="signature"></div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button id="prepareBtn">Prepare Resume</button>
+  <button id="printBtn" class="small">Print</button>
+  <button id="resetBtn" class="danger">Reset</button>
+  <button id="generateQRBtn" class="small">Generate QR</button>
+  <button id="downloadQRBtn" class="small">Download QR</button>
+  <button id="scanQRBtn" class="small">Scan QR</button>
+  <button id="importJSONBtn" class="small">Show / Import JSON</button>
+  <textarea id="qr-json-area" placeholder="Paste JSON from QR here..."></textarea>
+  <div id="qr-reader"></div>
+  <div id="qrcode"></div>
+  <p style="font-size:13px;color:#555">💡 Tip: QR works on mobile. JSON import is 100% reliable.</p>
+</div>
+
+<!-- Resume Output -->
+<div id="resume-output" class="resume-wrapper" style="display:none;"></div>
+
+<script>
+// --- Add Education / Project ---
+function addEducation(){ const edu=document.createElement('div'); edu.className='edu-block';
+  edu.innerHTML=`<div class="row"><label>Degree:</label><input type="text" class="degree"></div>
+  <div class="row"><label>Institution:</label><input type="text" class="institution"></div>
+  <div class="row"><label>Year:</label><input type="text" class="year"></div>
+  <div class="row"><label>Percentage/CGPA:</label><input type="text" class="grade"></div><hr>`;
+  document.getElementById('education-section').appendChild(edu); }
+function addProject(){ const proj=document.createElement('div'); proj.className='proj-block';
+  proj.innerHTML=`<div class="row"><label>Title:</label><input type="text" class="projectTitle"></div>
+  <div class="row"><label>Description:</label><textarea class="projectDesc"></textarea></div><hr>`;
+  document.getElementById('project-section').appendChild(proj); }
+
+// --- Other functions (prepareResume, resetForm, generateQR, downloadQR, importJSON) ---
+// Keep your existing implementations here (same as before)
+
+// --- Mobile QR Scanner (HTTPS-ready) ---
+function startQRScanner(){
+  const qrReader=document.getElementById('qr-reader');
+  qrReader.style.visibility='visible';
+  qrReader.innerHTML='';
+
+  Html5Qrcode.getCameras().then(cameras => {
+    if(!cameras || cameras.length===0){ alert("No camera found!"); return; }
+    const rearCam = cameras.find(c=>c.label.toLowerCase().includes("back")) || cameras[0];
+
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    html5QrCode.start(
+      rearCam.id,
+      { fps:10, qrbox:250 },
+      qrCodeMessage => {
+        try {
+          const data=JSON.parse(qrCodeMessage);
+          document.getElementById('qr-json-area').value=JSON.stringify(data,null,2);
+          importJSON();
+          html5QrCode.stop().then(()=>{ qrReader.style.visibility='hidden'; });
+        } catch(err){ console.log("Invalid QR data:", err); }
+      },
+      errMsg=>{}
+    ).catch(err=>{
+      console.error("Failed to start QR scanner:", err);
+      alert("Failed to start camera. Use HTTPS and allow camera access.");
+    });
+  }).catch(err=>{
+    console.error("Camera access error:", err);
+    alert("Camera access error. Make sure your device allows camera usage and page is HTTPS or localhost.");
+  });
+}
+
+// --- Event Listeners ---
+document.getElementById('prepareBtn').addEventListener('click',prepareResume);
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+document.getElementById('resetBtn').addEventListener('click',resetForm);
+document.getElementById('generateQRBtn').addEventListener('click',generateQR);
+document.getElementById('downloadQRBtn').addEventListener('click',downloadQR);
+document.getElementById('importJSONBtn').addEventListener('click',importJSON);
+document.getElementById('scanQRBtn').addEventListener('click',startQRScanner);
+</script>
+</div>
+</body>
+</html>
